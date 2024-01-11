@@ -1,0 +1,42 @@
+plugins {
+    id 'java-library'
+    id 'ru.sparural.microservice-configurer' version '1.8.2'
+
+    id 'org.springframework.boot' version '2.6.1'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+
+version = '1.8.0-11'
+
+microservice {
+    nexus()
+}
+
+repositories {
+    mavenCentral()
+    maven{url 'http://nexus.ctmol.ru/repository/maven-public/'; allowInsecureProtocol = true}
+}
+
+group 'ru.sparural'
+dependencies {
+    //lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    //spring
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.kafka:spring-kafka'
+	
+    //Jackson Object Mapper
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.0'
+
+    //Validation
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+tasks.getByName "bootJar", {
+    enabled = false
+}
