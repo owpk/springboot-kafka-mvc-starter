@@ -36,7 +36,6 @@ import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 public class KafkaMvcProducerImpl implements KafkaMvcProducer {
 
     private final Map<String, KafkaRequestInfo> processingMessages = new HashMap<>();
-    private final Boolean generateTraceId;
     private final Integer timeout;
     private final String producerReplyTopic;
     private final KafkaTemplate producerTemplate;
