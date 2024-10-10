@@ -33,9 +33,6 @@ public class KafkaMvcProducerAutoconfiguration {
     @Value("${kafka-mvc.bootstrap-servers}")
     private String serviceName;
 
-    @Value("${kafka-mvc.producer.generateTraceId:false}")
-    private Boolean generateTraceId;
-
     @Value("${kafka-mvc.producer.replyTopic}")
     private String producerReplyTopic;
 
@@ -73,7 +70,7 @@ public class KafkaMvcProducerAutoconfiguration {
     @Bean
     public KafkaMvcProducer kafkaMvcProducer(KafkaTemplate<String, KafkaRequestMessage> producerTemplate,
             ConsumerFactory<String, KafkaResponseMessage> producerReplyFactory) {
-        return new KafkaMvcProducerImpl(generateTraceId, timeout, producerReplyTopic, producerTemplate,
+        return new KafkaMvcProducerImpl(timeout, producerReplyTopic, producerTemplate,
                 producerReplyFactory);
     }
 }
