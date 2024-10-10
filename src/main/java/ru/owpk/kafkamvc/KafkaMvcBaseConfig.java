@@ -34,7 +34,7 @@ public class KafkaMvcBaseConfig {
         }
     }
 
-    @Value("${sparural.kafka.bootstrap-servers}")
+    @Value("${kafka-mvc.bootstrap-servers}")
     private String serviceName;
 
     @Bean

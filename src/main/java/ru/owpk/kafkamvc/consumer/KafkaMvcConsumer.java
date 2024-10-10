@@ -257,9 +257,11 @@ public class KafkaMvcConsumer {
     @SuppressWarnings("unchecked")
     private void sendResponse(KafkaResponseMessage response) {
         try {
-            ProducerRecord<String, KafkaResponseMessage> record = new ProducerRecord<>(response.getReplyTopic(),
-                    UUID.randomUUID().toString(), response);
-            replyTemplate.send(record);
+            if (response.getReplyTopic() != null) {
+                ProducerRecord<String, KafkaResponseMessage> record = new ProducerRecord<>(response.getReplyTopic(),
+                        UUID.randomUUID().toString(), response);
+                replyTemplate.send(record);
+            }
         } catch (RuntimeException ex) {
             log.error("Error on send kafka response", ex);
         }
