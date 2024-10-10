@@ -1,20 +1,21 @@
 package ru.sparural.kafka.annotation;
 
 
-import org.springframework.context.annotation.Import;
-import ru.sparural.kafka.KafkaSparuralBaseConfig;
-import ru.sparural.kafka.KafkaSparuralConsumerAutoconfiguration;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.context.annotation.Import;
+
+import ru.sparural.kafka.KafkaMvcBaseConfig;
+import ru.sparural.kafka.KafkaMvcConsumerAutoconfiguration;
+
 /**
  * @author Vyacheslav Vorobev
  */
-@Import({KafkaSparuralConsumerAutoconfiguration.class, KafkaSparuralBaseConfig.class})
+@Import({KafkaMvcConsumerAutoconfiguration.class, KafkaMvcBaseConfig.class})
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface EnableSparuralKafkaConsumer {
+public @interface EnableKafkaMvcConsumer {
 }

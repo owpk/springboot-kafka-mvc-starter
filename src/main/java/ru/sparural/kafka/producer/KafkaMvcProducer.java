@@ -1,10 +1,10 @@
 package ru.sparural.kafka.producer;
 
-import ru.sparural.kafka.model.KafkaResponseMessage;
-
 import java.util.Map;
 
-public interface KafkaSparuralProducer {
+import ru.sparural.kafka.model.KafkaResponseMessage;
+
+public interface KafkaMvcProducer {
     KafkaResponseMessage send(String topic, String action);
 
     KafkaResponseMessage send(String topic, String action, Object payload);

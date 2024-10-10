@@ -1,25 +1,5 @@
 package ru.sparural.kafka.producer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.slf4j.MDC;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.lang.Nullable;
-import ru.sparural.kafka.KafkaSparuralBaseConfig;
-import ru.sparural.kafka.consumer.KafkaResponseStatus;
-import ru.sparural.kafka.model.KafkaRequestMessage;
-import ru.sparural.kafka.model.KafkaResponseMessage;
-import ru.sparural.kafka.model.serialization.SerializerUtils;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +9,31 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.MDC;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import ru.sparural.kafka.KafkaMvcBaseConfig;
+import ru.sparural.kafka.consumer.KafkaResponseStatus;
+import ru.sparural.kafka.model.KafkaRequestMessage;
+import ru.sparural.kafka.model.KafkaResponseMessage;
+import ru.sparural.kafka.model.serialization.SerializerUtils;
+
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
+public class KafkaMvcProducerImpl implements KafkaMvcProducer {
 
     private final Map<String, KafkaRequestInfo> processingMessages = new HashMap<>();
     private final Boolean generateTraceId;
@@ -45,8 +47,8 @@ public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
     @PostConstruct
     public void init() {
         ContainerProperties containerProperties = new ContainerProperties(producerReplyTopic);
-        containerProperties.setMessageListener((MessageListener<String, KafkaResponseMessage>)
-                this::processReplyMessage);
+        containerProperties
+                .setMessageListener((MessageListener<String, KafkaResponseMessage>) this::processReplyMessage);
 
         container = new ConcurrentMessageListenerContainer<>(producerReplyFactory, containerProperties);
         container.start();
@@ -75,10 +77,10 @@ public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
     @Override
     @SuppressWarnings("unchecked")
     public KafkaRequestInfo sendAsync(Map<String, Object> params, String topic,
-                                      String action, @Nullable Object payload) {
+            String action, @Nullable Object payload) {
         KafkaResponseMessage response;
         String correlationId = UUID.randomUUID().toString();
-        String traceId = MDC.get(KafkaSparuralBaseConfig.MDC_TRACE_ID_KEY);
+        String traceId = MDC.get(KafkaMvcBaseConfig.MDC_TRACE_ID_KEY);
 
         try {
             KafkaRequestMessage request = new KafkaRequestMessage();
@@ -87,7 +89,7 @@ public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
 
             if (traceId == null) {
                 traceId = UUID.randomUUID().toString();
-                MDC.put(KafkaSparuralBaseConfig.MDC_TRACE_ID_KEY, traceId);
+                MDC.put(KafkaMvcBaseConfig.MDC_TRACE_ID_KEY, traceId);
             }
 
             request.setTraceId(traceId.getBytes());
@@ -100,8 +102,7 @@ public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
                     traceId,
                     new CompletableFuture<>(), timeout,
                     action,
-                    topic
-            );
+                    topic);
             ProducerRecord<String, KafkaRequestMessage> record = new ProducerRecord<>(
                     topic, UUID.randomUUID().toString(), request);
 
@@ -124,7 +125,7 @@ public class KafkaSparuralProducerImpl implements KafkaSparuralProducer {
         try {
             KafkaRequestInfo requestInfo = sendAsync(params, topic, action, payload);
             var resp = requestInfo.getFuture().get(timeout, TimeUnit.SECONDS);
-            MDC.remove(KafkaSparuralBaseConfig.MDC_TRACE_ID_KEY);
+            MDC.remove(KafkaMvcBaseConfig.MDC_TRACE_ID_KEY);
             return resp;
         } catch (TimeoutException ex) {
             log.warn("Kafka consumer not answer");

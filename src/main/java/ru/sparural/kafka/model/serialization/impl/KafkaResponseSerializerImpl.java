@@ -5,19 +5,18 @@
  */
 package ru.sparural.kafka.model.serialization.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.header.Headers;
-import ru.sparural.kafka.KafkaSparuralBaseConfig;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import lombok.extern.slf4j.Slf4j;
+import ru.sparural.kafka.KafkaMvcBaseConfig;
 import ru.sparural.kafka.consumer.KafkaResponseStatus;
 import ru.sparural.kafka.model.KafkaResponseMessage;
 import ru.sparural.kafka.model.serialization.HeaderEnum;
 import ru.sparural.kafka.model.serialization.KafkaPayloadType;
 import ru.sparural.kafka.model.serialization.KafkaResponseSerializer;
 import ru.sparural.kafka.model.serialization.SerializerUtils;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 @Slf4j
 public class KafkaResponseSerializerImpl implements KafkaResponseSerializer {
@@ -43,7 +42,7 @@ public class KafkaResponseSerializerImpl implements KafkaResponseSerializer {
             }
             headers.add(HeaderEnum.CORRELATION_ID.getHeader(), response.getCorrelationId());
             headers.add(HeaderEnum.PAYLOAD_TYPE.getHeader(), payloadType.getBytes());
-            headers.add(HeaderEnum.RESPONDENT.getHeader(), KafkaSparuralBaseConfig.KAFKA_CLIENT_IDENTIFIER.getBytes());
+            headers.add(HeaderEnum.RESPONDENT.getHeader(), KafkaMvcBaseConfig.KAFKA_CLIENT_IDENTIFIER.getBytes());
             int statusCode = response.getStatus().getCode();
             headers.add(HeaderEnum.STATUS.getHeader(), serializerUtils.setIntegerPayload(statusCode));
             return result;

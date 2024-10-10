@@ -18,5 +18,4 @@ public class KafkaFailureMessage {
         this.arguments = Stream.of(args).map(Object::toString).collect(Collectors.toList());
     }
 
-
 }

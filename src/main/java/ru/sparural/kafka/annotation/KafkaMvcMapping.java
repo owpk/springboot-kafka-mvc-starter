@@ -1,15 +1,12 @@
 package ru.sparural.kafka.annotation;
 
-import org.springframework.stereotype.Component;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Component
-public @interface KafkaSparuralExceptionHandler {
-
+@Target(value = {ElementType.METHOD})
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface KafkaMvcMapping {
+    String value();
 }

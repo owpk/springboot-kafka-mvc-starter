@@ -146,7 +146,8 @@ public class SerializerUtils {
         if (headerValue != null)
             return objectMapper.readValue(headerValue, new TypeReference<>() {
             });
-        else return Collections.emptyMap();
+        else
+            return Collections.emptyMap();
     }
 
     public KafkaResponseStatus deserializeStatus(String requiredHeader) throws JsonProcessingException {

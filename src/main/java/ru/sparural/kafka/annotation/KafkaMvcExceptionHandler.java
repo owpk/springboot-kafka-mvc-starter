@@ -5,8 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(value = {ElementType.METHOD})
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface KafkaSparuralMapping {
-    String value();
+import org.springframework.stereotype.Component;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Component
+public @interface KafkaMvcExceptionHandler {
+
 }

@@ -1,3 +1,7 @@
 /.gradle
 /build
 /.idea
+/target
+/.vscode
+gradle-wrapper.jar
+maven-wrapper.jar

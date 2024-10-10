@@ -1,38 +1,39 @@
 package ru.sparural.kafka.handler;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
-import ru.sparural.kafka.annotation.ExceptionHandler;
-import ru.sparural.kafka.annotation.KafkaSparuralExceptionHandler;
-import ru.sparural.kafka.model.KafkaRequestMessage;
-import ru.sparural.kafka.model.KafkaResponseMessage;
-
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.ApplicationContext;
+
+import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import ru.sparural.kafka.annotation.ExceptionHandler;
+import ru.sparural.kafka.annotation.KafkaMvcExceptionHandler;
+import ru.sparural.kafka.model.KafkaRequestMessage;
+import ru.sparural.kafka.model.KafkaResponseMessage;
+
 @AllArgsConstructor
 @Slf4j
-public class KafkaSparuralExceptionHandlerBean {
+public class KafkaMvcExceptionHandlerBean {
 
     private final ApplicationContext ctx;
     private final List<ExceptionHandlerEntry> handlers = new ArrayList<>();
 
     @PostConstruct
     public void init() {
-        ctx.getBeansWithAnnotation(KafkaSparuralExceptionHandler.class).forEach((beanName, bean) ->
-                processHandler(bean));
+        ctx.getBeansWithAnnotation(KafkaMvcExceptionHandler.class).forEach((beanName, bean) -> processHandler(bean));
     }
 
     private void processHandler(Object bean) {
         for (Method method : bean.getClass().getMethods()) {
             if (method.isAnnotationPresent(ExceptionHandler.class)) {
                 if (!method.getReturnType().equals(KafkaResponseMessage.class)) {
-                    log.warn("Exception handler must return KafkaResponseMessage: {}: {}", bean.getClass().getName(), method.getName());
+                    log.warn("Exception handler must return KafkaResponseMessage: {}: {}", bean.getClass().getName(),
+                            method.getName());
                     continue;
                 }
                 ExceptionHandler handlerAnnotation = method.getAnnotation(ExceptionHandler.class);

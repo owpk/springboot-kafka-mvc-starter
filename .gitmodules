@@ -1,4 +1,0 @@
-[submodule "deploy-scripts"]
-	path = deploy-scripts
-	url = git@gitlab.ctmol.ru:ecomm/devops/deploy-scripts.git
-	branch = master

@@ -19,7 +19,8 @@ public class KafkaRequestMessage {
     private String requester;
     private KafkaSerializationException exception;
 
-    public KafkaRequestMessage(KafkaSerializationException exception, byte[] correlationId, byte[] traceId, String replyTopic) {
+    public KafkaRequestMessage(KafkaSerializationException exception, byte[] correlationId, byte[] traceId,
+            String replyTopic) {
         this.replyTopic = replyTopic;
         this.correlationId = correlationId;
         this.exception = exception;

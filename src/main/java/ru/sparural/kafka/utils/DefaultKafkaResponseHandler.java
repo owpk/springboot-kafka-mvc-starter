@@ -25,9 +25,10 @@ public class DefaultKafkaResponseHandler implements KafkaResponseHandler {
             } catch (ClassCastException c) {
                 log.error(String.format("Unknown service response type. Status %s. Exception message : %s",
                         response.getStatus(), c.getLocalizedMessage()), c);
-                throw new SparuralKafkaBadKafkaResponseException(response);
+                throw new KafkaMvcBadKafkaResponseException(response);
             }
-        } else throw new SparuralKafkaBadKafkaResponseException(response);
+        } else
+            throw new KafkaMvcBadKafkaResponseException(response);
     }
 
     @SuppressWarnings("unchecked")

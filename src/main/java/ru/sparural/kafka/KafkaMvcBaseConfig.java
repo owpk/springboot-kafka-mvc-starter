@@ -1,8 +1,12 @@
 package ru.sparural.kafka;
 
-import lombok.RequiredArgsConstructor;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+
+import lombok.RequiredArgsConstructor;
 import ru.sparural.kafka.model.serialization.KafkaRequestDeserializer;
 import ru.sparural.kafka.model.serialization.KafkaRequestSerializer;
 import ru.sparural.kafka.model.serialization.KafkaResponseDeserializer;
@@ -13,14 +17,11 @@ import ru.sparural.kafka.model.serialization.impl.KafkaResponseDeserializerImpl;
 import ru.sparural.kafka.model.serialization.impl.KafkaResponseSerializerImpl;
 import ru.sparural.kafka.utils.KafkaAdminProvider;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 /**
  * @author Vorobyev Vyacheslav
  */
 @RequiredArgsConstructor
-public class KafkaSparuralBaseConfig {
+public class KafkaMvcBaseConfig {
     public static final String MDC_TRACE_ID_KEY = "trace_id";
     public static final String MDC_CORRELATION_ID_KEY = "correlation_id";
     public static String KAFKA_CLIENT_IDENTIFIER;
