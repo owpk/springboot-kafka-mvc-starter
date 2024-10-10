@@ -1,23 +1,24 @@
 plugins {
     id 'java-library'
-    id 'ru.sparural.microservice-configurer' version '1.8.2'
-
-    id 'org.springframework.boot' version '2.6.1'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
-version = '1.8.0-11'
-
-microservice {
-    nexus()
-}
+version = '1.8.0-17'
 
 repositories {
     mavenCentral()
-    maven{url 'http://nexus.ctmol.ru/repository/maven-public/'; allowInsecureProtocol = true}
 }
 
-group 'ru.sparural'
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+group 'ru.owpk.kafkamvc'
+
 dependencies {
     //lombok
     compileOnly 'org.projectlombok:lombok'
@@ -33,9 +34,6 @@ dependencies {
     //Validation
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
-
-sourceCompatibility = '11'
-targetCompatibility = '11'
 
 tasks.getByName "bootJar", {
     enabled = false

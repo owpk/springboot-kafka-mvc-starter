@@ -1,7 +1,1 @@
-pluginManagement {
-    repositories {
-        maven{url 'http://nexus.ctmol.ru/repository/maven-public/'; allowInsecureProtocol = true}
-        mavenCentral()
-    }
-}
-rootProject.name = 'kafka-starter'
+rootProject.name = 'kafka-mvc-starter'
