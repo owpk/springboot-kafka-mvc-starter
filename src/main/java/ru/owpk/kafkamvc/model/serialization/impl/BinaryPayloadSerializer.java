@@ -1,7 +1,5 @@
 package ru.owpk.kafkamvc.model.serialization.impl;
 
-import java.util.Map;
-
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
@@ -12,13 +10,9 @@ public class BinaryPayloadSerializer implements PayloadSerializer {
 
     @Override
     public byte[] serialize(Object payload) throws Exception {
+        final LinkedBuffer BUFFER = LinkedBuffer.allocate();
         Schema schema = RuntimeSchema.getSchema(payload.getClass());
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
-        try {
-            return ProtostuffIOUtil.toByteArray(payload, schema, buffer);
-        } finally {
-            buffer.clear();
-        }
+        return ProtostuffIOUtil.toByteArray(payload, schema, BUFFER);
     }
 
     @Override
@@ -36,26 +30,6 @@ public class BinaryPayloadSerializer implements PayloadSerializer {
         var javaObject = schema.newMessage();
         ProtostuffIOUtil.mergeFrom(payload, javaObject, schema);
         return javaObject;
-    }
-
-    @Override
-    public byte[] serializeFromMap(Map<String, Object> payload) throws Exception {
-        Schema schema = RuntimeSchema.getSchema(payload.getClass());
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
-        try {
-            return ProtostuffIOUtil.toByteArray(payload, schema, buffer);
-        } finally {
-            buffer.clear();
-        }
-    }
-
-    @Override
-    public Map<String, Object> deserializeToMap(byte[] payload) throws Exception {
-        Class<?> clazz = Class.forName(Map.class.getName());
-        Schema schema = RuntimeSchema.getSchema(clazz);
-        var javaObject = schema.newMessage();
-        ProtostuffIOUtil.mergeFrom(payload, javaObject, schema);
-        return (Map) javaObject;
     }
 
 }

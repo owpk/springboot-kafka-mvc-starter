@@ -19,8 +19,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +38,7 @@ public class KafkaMvcProducerImpl implements KafkaMvcProducer {
     private final String producerReplyTopic;
     private final KafkaTemplate producerTemplate;
     private final ConsumerFactory<String, KafkaResponseMessage> producerReplyFactory;
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils = new SerializerUtils("binary");
     private ConcurrentMessageListenerContainer container = null;
 
     @PostConstruct

@@ -18,10 +18,6 @@ public class KafkaResponseDeserializerImpl implements KafkaResponseDeserializer 
         this.serializerUtils = new SerializerUtils(serialzerType);
     }
 
-    public KafkaResponseDeserializerImpl() {
-        this.serializerUtils = new SerializerUtils();
-    }
-
     @Override
     public KafkaResponseMessage deserialize(String topic, Headers headers, byte[] payload) {
         byte[] correlationId = null;

@@ -10,7 +10,7 @@ import ru.owpk.kafkamvc.model.KafkaRequestMessage;
 import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 
 public class PayloadProcessor implements AnnotationProcessor {
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils = new SerializerUtils("binary");
 
     @Override
     public Object evaluate(Parameter parameter, ConsumerRecord<String, KafkaRequestMessage> message) throws KafkaControllerException {

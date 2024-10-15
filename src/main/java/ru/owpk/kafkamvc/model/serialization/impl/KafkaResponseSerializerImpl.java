@@ -25,10 +25,6 @@ public class KafkaResponseSerializerImpl implements KafkaResponseSerializer {
         this.serializerUtils = new SerializerUtils(serialzerType);
     }
 
-    public KafkaResponseSerializerImpl() {
-        this.serializerUtils = new SerializerUtils();
-    }
-
     @Override
     public byte[] serialize(String topic, KafkaResponseMessage data) {
         throw new UnsupportedOperationException("Not supported yet.");

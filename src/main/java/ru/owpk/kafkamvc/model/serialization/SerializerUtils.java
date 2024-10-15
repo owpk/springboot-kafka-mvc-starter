@@ -1,5 +1,6 @@
 package ru.owpk.kafkamvc.model.serialization;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +11,12 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ru.owpk.kafkamvc.consumer.KafkaResponseStatus;
 import ru.owpk.kafkamvc.exception.KafkaSerializationException;
 import ru.owpk.kafkamvc.model.serialization.impl.BinaryPayloadSerializer;
@@ -17,6 +24,7 @@ import ru.owpk.kafkamvc.model.serialization.impl.JsonPayloadSerializer;
 
 public class SerializerUtils {
     private final PayloadSerializer payloadSerializer;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public SerializerUtils(PayloadSerializer payloadSerializer) {
         this.payloadSerializer = payloadSerializer;
@@ -31,11 +39,6 @@ public class SerializerUtils {
             default ->
                 new JsonPayloadSerializer();
         });
-    }
-
-    // Default
-    public SerializerUtils() {
-        this(new JsonPayloadSerializer());
     }
 
     public Object getPayload(Type payloadType, byte[] payload) throws KafkaSerializationException {
@@ -163,7 +166,7 @@ public class SerializerUtils {
         if (map == null)
             return new byte[0];
         try {
-            return payloadSerializer.serializeFromMap(map);
+            return serializeFromMap(map);
         } catch (Exception e) {
             throw new KafkaSerializationException(e);
         }
@@ -172,7 +175,7 @@ public class SerializerUtils {
     public Map<String, Object> deserializeMapFromHeader(String headerValue) throws KafkaSerializationException {
         if (headerValue != null)
             try {
-                return payloadSerializer.deserializeToMap(headerValue.getBytes(StandardCharsets.UTF_8));
+                return deserializeToMap(headerValue.getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 throw new KafkaSerializationException(e);
             }
@@ -189,5 +192,13 @@ public class SerializerUtils {
                 throw new KafkaSerializationException(e);
             }
         return KafkaResponseStatus.STATUS_CODE.status(0);
+    }
+
+    public byte[] serializeFromMap(Map<String, Object> payload) throws JsonProcessingException {
+        return objectMapper.writeValueAsBytes(payload);
+    }
+
+    public Map<String, Object> deserializeToMap(byte[] payload) throws StreamReadException, DatabindException, IOException {
+        return objectMapper.readValue(payload, new TypeReference<Map<String, Object>>(){});
     }
 }

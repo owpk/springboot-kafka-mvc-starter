@@ -21,10 +21,6 @@ public class KafkaRequestSerializerImpl implements KafkaRequestSerializer {
         this.serializerUtils = new SerializerUtils(serialzerType);
     }
 
-    public KafkaRequestSerializerImpl() {
-        this.serializerUtils = new SerializerUtils();
-    }
-
     @Override
     public byte[] serialize(String topic, KafkaRequestMessage data) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
