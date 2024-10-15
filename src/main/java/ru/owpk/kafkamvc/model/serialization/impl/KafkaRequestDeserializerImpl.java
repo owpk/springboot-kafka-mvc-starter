@@ -1,7 +1,5 @@
 package ru.owpk.kafkamvc.model.serialization.impl;
 
-import java.io.IOException;
-
 import org.apache.kafka.common.header.Headers;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +12,15 @@ import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 @Slf4j
 public class KafkaRequestDeserializerImpl implements KafkaRequestDeserializer {
 
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils;
+
+    public KafkaRequestDeserializerImpl(String serialzerType) {
+        this.serializerUtils = new SerializerUtils(serialzerType);
+    }
+
+    public KafkaRequestDeserializerImpl() {
+        this.serializerUtils = new SerializerUtils();
+    }
 
     @Override
     public KafkaRequestMessage deserialize(String topic, Headers headers, byte[] payload) {
@@ -43,7 +49,7 @@ public class KafkaRequestDeserializerImpl implements KafkaRequestDeserializer {
             return request;
         } catch (KafkaSerializationException ex0) {
             return new KafkaRequestMessage(ex0, correlationId, traceId, replyTopic);
-        } catch (IOException | RuntimeException ex1) {
+        } catch (RuntimeException ex1) {
             return new KafkaRequestMessage(new KafkaSerializationException(ex1), correlationId, traceId, replyTopic);
         }
     }

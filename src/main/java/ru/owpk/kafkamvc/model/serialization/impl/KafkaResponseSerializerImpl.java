@@ -7,8 +7,6 @@ package ru.owpk.kafkamvc.model.serialization.impl;
 
 import org.apache.kafka.common.header.Headers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import lombok.extern.slf4j.Slf4j;
 import ru.owpk.kafkamvc.KafkaMvcBaseConfig;
 import ru.owpk.kafkamvc.consumer.KafkaResponseStatus;
@@ -21,7 +19,15 @@ import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 @Slf4j
 public class KafkaResponseSerializerImpl implements KafkaResponseSerializer {
 
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils;
+
+    public KafkaResponseSerializerImpl(String serialzerType) {
+        this.serializerUtils = new SerializerUtils(serialzerType);
+    }
+
+    public KafkaResponseSerializerImpl() {
+        this.serializerUtils = new SerializerUtils();
+    }
 
     @Override
     public byte[] serialize(String topic, KafkaResponseMessage data) {
@@ -46,7 +52,7 @@ public class KafkaResponseSerializerImpl implements KafkaResponseSerializer {
             int statusCode = response.getStatus().getCode();
             headers.add(HeaderEnum.STATUS.getHeader(), serializerUtils.setIntegerPayload(statusCode));
             return result;
-        } catch (JsonProcessingException ex) {
+        } catch (Exception ex) {
             log.error("Error serialize KafkaResponseMessage", ex);
             headers.add(HeaderEnum.CORRELATION_ID.getHeader(), response.getCorrelationId());
             headers.add(HeaderEnum.PAYLOAD_TYPE.getHeader(), KafkaPayloadType.STRING.getPayloadType().getBytes());

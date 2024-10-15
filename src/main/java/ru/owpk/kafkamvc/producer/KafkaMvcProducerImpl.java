@@ -110,7 +110,7 @@ public class KafkaMvcProducerImpl implements KafkaMvcProducer {
             log.info("Sent action '{}' for topic '{} with correlationId '{}'",
                     action, topic, correlationId);
             return requestInfo;
-        } catch (JsonProcessingException | RuntimeException ex) {
+        } catch (RuntimeException ex) {
             log.error("Error during produce message", ex);
             response = new KafkaResponseMessage();
             response.setStatus(KafkaResponseStatus.CLIENT_SIDE_ERROR);

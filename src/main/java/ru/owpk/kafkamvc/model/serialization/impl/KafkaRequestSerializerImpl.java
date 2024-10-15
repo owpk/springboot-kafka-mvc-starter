@@ -4,8 +4,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.kafka.common.header.Headers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import lombok.extern.slf4j.Slf4j;
 import ru.owpk.kafkamvc.KafkaMvcBaseConfig;
 import ru.owpk.kafkamvc.exception.KafkaSerializationException;
@@ -17,7 +15,15 @@ import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 @Slf4j
 public class KafkaRequestSerializerImpl implements KafkaRequestSerializer {
 
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils;
+
+    public KafkaRequestSerializerImpl(String serialzerType) {
+        this.serializerUtils = new SerializerUtils(serialzerType);
+    }
+
+    public KafkaRequestSerializerImpl() {
+        this.serializerUtils = new SerializerUtils();
+    }
 
     @Override
     public byte[] serialize(String topic, KafkaRequestMessage data) {
@@ -37,7 +43,7 @@ public class KafkaRequestSerializerImpl implements KafkaRequestSerializer {
                     .getBytes();
             headers.add(HeaderEnum.PARAMS.getHeader(), paramsBody);
             return request.getPayload() != null ? request.getPayload() : new byte[0];
-        } catch (JsonProcessingException ex) {
+        } catch (Exception ex) {
             log.error("Error serialize KafkaResponseMessage", ex);
             throw new KafkaSerializationException(ex);
         }

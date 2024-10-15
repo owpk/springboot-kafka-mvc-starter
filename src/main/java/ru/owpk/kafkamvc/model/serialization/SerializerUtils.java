@@ -1,8 +1,8 @@
 package ru.owpk.kafkamvc.model.serialization;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -10,28 +10,45 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ru.owpk.kafkamvc.consumer.KafkaResponseStatus;
 import ru.owpk.kafkamvc.exception.KafkaSerializationException;
+import ru.owpk.kafkamvc.model.serialization.impl.BinaryPayloadSerializer;
+import ru.owpk.kafkamvc.model.serialization.impl.JsonPayloadSerializer;
 
 public class SerializerUtils {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PayloadSerializer payloadSerializer;
 
-    public Object getPayload(Type payloadType, byte[] payload) throws IOException, ClassNotFoundException {
+    public SerializerUtils(PayloadSerializer payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
+    }
+
+    public SerializerUtils(String type) {
+        this(switch (type) {
+            case "json" ->
+                new JsonPayloadSerializer();
+            case "binary" ->
+                new BinaryPayloadSerializer();
+            default ->
+                new JsonPayloadSerializer();
+        });
+    }
+
+    // Default
+    public SerializerUtils() {
+        this(new JsonPayloadSerializer());
+    }
+
+    public Object getPayload(Type payloadType, byte[] payload) throws KafkaSerializationException {
         String payloadClassName = payloadType.getTypeName();
         return getPayload(payloadClassName, payload);
     }
 
-    public Object getPayload(Headers headers, byte[] payload) throws IOException, ClassNotFoundException {
+    public Object getPayload(Headers headers, byte[] payload) throws KafkaSerializationException {
         String payloadClassName = getRequiredHeader(HeaderEnum.PAYLOAD_TYPE.getHeader(), headers);
         return getPayload(payloadClassName, payload);
     }
 
-    public Object getPayload(String payloadType, byte[] payload) throws IOException, ClassNotFoundException {
+    public Object getPayload(String payloadType, byte[] payload) throws KafkaSerializationException {
         KafkaPayloadType kafkaPayloadType = KafkaPayloadType.of(payloadType);
         switch (kafkaPayloadType) {
             case STRING:
@@ -47,7 +64,7 @@ public class SerializerUtils {
         }
     }
 
-    public byte[] setPayload(Object payload, Type payloadType) throws JsonProcessingException {
+    public byte[] setPayload(Object payload, Type payloadType) throws KafkaSerializationException {
         if (payload == null) {
             return new byte[0];
         }
@@ -84,6 +101,7 @@ public class SerializerUtils {
         Header actionHeader = headers.lastHeader(header);
         if (actionHeader == null)
             throw new KafkaSerializationException("No {} header available", header);
+
         if (actionHeader.value().length == 0)
             throw new KafkaSerializationException("No {} header available", header);
         return actionHeader.value();
@@ -91,15 +109,11 @@ public class SerializerUtils {
 
     public byte[] getRawRequiredHeader(String header, Headers headers) {
         Header actionHeader = headers.lastHeader(header);
-        if (actionHeader == null) {
+        if (actionHeader == null)
             throw new KafkaSerializationException("No {} header available", header);
-        }
         byte[] value = headers.lastHeader(header).value();
-
-        if (value.length == 0) {
+        if (value.length == 0)
             throw new KafkaSerializationException("No {} header available", header);
-        }
-
         return value;
     }
 
@@ -129,32 +143,51 @@ public class SerializerUtils {
         return buffer.array();
     }
 
-    public Object getObjectPayload(byte[] payload, String payloadClassName) throws IOException, ClassNotFoundException {
-        JavaType javaType = objectMapper.getTypeFactory().constructFromCanonical(payloadClassName);
-        return objectMapper.readValue(payload, javaType);
+    public Object getObjectPayload(byte[] payload, String payloadClassName) throws KafkaSerializationException {
+        try {
+            return payloadSerializer.deserializeClass(payload, payloadClassName);
+        } catch (Exception e) {
+            throw new KafkaSerializationException(e);
+        }
     }
 
-    public byte[] setObjectPayload(Object payload) throws JsonProcessingException {
-        return objectMapper.writeValueAsBytes(payload);
+    public byte[] setObjectPayload(Object payload) throws KafkaSerializationException {
+        try {
+            return payloadSerializer.serialize(payload);
+        } catch (Exception e) {
+            throw new KafkaSerializationException(e);
+        }
     }
 
-    public byte[] serializeMap(Map<String, Object> map) throws JsonProcessingException {
+    public byte[] serializeMap(Map<String, Object> map) throws KafkaSerializationException {
         if (map == null)
             return new byte[0];
-        return objectMapper.writeValueAsBytes(map);
+        try {
+            return payloadSerializer.serializeFromMap(map);
+        } catch (Exception e) {
+            throw new KafkaSerializationException(e);
+        }
     }
 
-    public Map<String, Object> deserializeMapFromHeader(String headerValue) throws IOException {
+    public Map<String, Object> deserializeMapFromHeader(String headerValue) throws KafkaSerializationException {
         if (headerValue != null)
-            return objectMapper.readValue(headerValue, new TypeReference<>() {
-            });
+            try {
+                return payloadSerializer.deserializeToMap(headerValue.getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                throw new KafkaSerializationException(e);
+            }
         else
             return Collections.emptyMap();
     }
 
-    public KafkaResponseStatus deserializeStatus(String requiredHeader) throws JsonProcessingException {
+    public KafkaResponseStatus deserializeStatus(String requiredHeader) throws KafkaSerializationException {
         if (requiredHeader != null)
-            return objectMapper.readValue(requiredHeader, KafkaResponseStatus.class);
+            try {
+                return payloadSerializer.deserializeClass(requiredHeader.getBytes(StandardCharsets.UTF_8),
+                        KafkaResponseStatus.class);
+            } catch (Exception e) {
+                throw new KafkaSerializationException(e);
+            }
         return KafkaResponseStatus.STATUS_CODE.status(0);
     }
 }

@@ -1,6 +1,5 @@
 package ru.owpk.kafkamvc.model.serialization.impl;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.kafka.common.header.Headers;
@@ -13,7 +12,15 @@ import ru.owpk.kafkamvc.model.serialization.KafkaResponseDeserializer;
 import ru.owpk.kafkamvc.model.serialization.SerializerUtils;
 
 public class KafkaResponseDeserializerImpl implements KafkaResponseDeserializer {
-    private final SerializerUtils serializerUtils = new SerializerUtils();
+    private final SerializerUtils serializerUtils;
+
+    public KafkaResponseDeserializerImpl(String serialzerType) {
+        this.serializerUtils = new SerializerUtils(serialzerType);
+    }
+
+    public KafkaResponseDeserializerImpl() {
+        this.serializerUtils = new SerializerUtils();
+    }
 
     @Override
     public KafkaResponseMessage deserialize(String topic, Headers headers, byte[] payload) {
@@ -32,7 +39,7 @@ public class KafkaResponseDeserializerImpl implements KafkaResponseDeserializer 
             return response;
         } catch (KafkaSerializationException ex0) {
             return new KafkaResponseMessage(ex0, correlationId);
-        } catch (IOException | ClassNotFoundException | RuntimeException ex1) {
+        } catch (Exception ex1) {
             return new KafkaResponseMessage(new KafkaSerializationException(ex1), correlationId);
         }
     }

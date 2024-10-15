@@ -37,6 +37,9 @@ public class KafkaMvcBaseConfig {
     @Value("${kafka-mvc.bootstrap-servers}")
     private String serviceName;
 
+    @Value("${kafka-mvc.serialization.type:json}")
+    private String serialzerType;
+
     @Bean
     public KafkaAdminProvider kafkaAdminProvider() {
         return new KafkaAdminProvider(serviceName);
@@ -44,21 +47,21 @@ public class KafkaMvcBaseConfig {
 
     @Bean
     public KafkaRequestDeserializer kafkaRequestDeserializer() {
-        return new KafkaRequestDeserializerImpl();
+        return new KafkaRequestDeserializerImpl(serialzerType);
     }
 
     @Bean
     public KafkaResponseSerializer kafkaResponseSerializer() {
-        return new KafkaResponseSerializerImpl();
+        return new KafkaResponseSerializerImpl(serialzerType);
     }
 
     @Bean
     public KafkaRequestSerializer kafkaRequestSerializer() {
-        return new KafkaRequestSerializerImpl();
+        return new KafkaRequestSerializerImpl(serialzerType);
     }
 
     @Bean
     public KafkaResponseDeserializer kafkaResponseDeserializer() {
-        return new KafkaResponseDeserializerImpl();
+        return new KafkaResponseDeserializerImpl(serialzerType);
     }
 }

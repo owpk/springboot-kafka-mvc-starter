@@ -1,6 +1,5 @@
 package ru.owpk.kafkamvc.consumer.processors;
 
-import java.io.IOException;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 
@@ -19,7 +18,7 @@ public class PayloadProcessor implements AnnotationProcessor {
         Type paramType = parameter.getParameterizedType();
         try {
             return serializerUtils.getPayload(paramType, request.getPayload());
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (Exception e) {
             throw new KafkaControllerException(e);
         }
     }
