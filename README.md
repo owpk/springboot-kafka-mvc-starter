@@ -1,12 +1,15 @@
-# Springboot kafka mvc starter
+# Spring-boot kafka mvc starter
+
+Spring Boot Starter Apache Kafka Wrapper для обработки сообщений в архитектуре MVC.
 
 ![alt main-flow](./doc/flow.png)
 
 ## Base concepts
 
 - Автоматически настроенные компоненты для удобной отправки и приема сообщений через Kafka.
-- Стартер устанавливает верхнеуровневую абстракцию `kafka endpoints` внутри kafka топиков, как в стандартном rest http подходе.
-- Поддержка и настройка "из коробки" `request` и `reply` топиков для каждого клиента позволяющие реализовать семантику синхронных request-reply
+- Абстракция `kafka endpoints` поверх kafka топиков для взаимодействия как в стандартном rest http подходе.
+- Автоматически настроенные `request` и `reply` топики для каждого клиента и поддержка семантики синхронных request-reply
+- TraceId логи сообщений из коробки
 
 ## Main components
 
@@ -17,8 +20,7 @@
 
 2. **Аннотации**:
 
-   - Проект использует аннотации для маркировки методов и классов, например, `@KafkaMvcController`, `@KafkaMvcMapping`, `@ExceptionHandler`.
-   - Аннотации помогают в автоматической конфигурации и обработке исключений.
+   - Аннотации для маркировки методов и классов, например, `@KafkaMvcController`, `@KafkaMvcMapping`, `@ExceptionHandler`.
 
 3. **Конфигурация**:
 
@@ -41,11 +43,37 @@
 
 ## Usage example
 
-Этот проект представляет собой Spring Boot Starter, который интегрируется с Apache Kafka для обработки сообщений в архитектуре MVC. Вот как вы можете использовать его в своем проекте:
-
 1. **Добавление зависимости**:
 
-   - Убедитесь, что ваш проект имеет зависимость от этого стартер-пакета в файле `pom.xml` или `build.gradle`.
+   - Установка локально
+
+   ```sh
+   git clone https://github.com/owpk/springboot-kafka-mvc-starter
+   cd springboot-kafka-mvc-starter
+   ./mvnw clean install
+   ```
+
+   - maven
+
+   ```xml
+   <dependency>
+       <groupId>ru.owpk.kafkamvc</groupId>
+       <artifactId>springboot-kafka-mvc-starter</artifactId>
+       <version>1.8.0-17</version>
+   </dependency>
+   ```
+
+   - gradle
+
+   ```groovy
+   repositories {
+       mavenLocal()
+   }
+
+   dependencies {
+        implementation 'ru.owpk.kafkamvc:springboot-kafka-mvc-starter:1.8.0-17'
+   }
+   ```
 
 2. **Конфигурация**:
 
@@ -69,30 +97,107 @@
 6. **Отправка сообщений**:
 
    - Используйте `KafkaMvcRequestCreator` для отправки сообщений. Вы можете отправлять сообщения синхронно или асинхронно, используя методы `send` и `sendAsync`.
-   - По умолчанию bean `KafkaMvcRequestCreator` не создается автоконфигурацией, для этого вы должны создать его сами:
+   - По умолчанию bean `KafkaMvcRequestCreator` не создается автоконфигурацией, для этого вы должны создать его вручную:
 
-   ```java
-   @Configuration
-   public class BeanConfig {
-        @Bean
-        KafkaMvcRequestCreator requestCreator(KafkaMvcProducer producer) {
-            return new KafkaMvcRequestCreator(producer);
-        }
-   }
-   ```
+     ```java
+     @Configuration
+     public class BeanConfig {
+
+          @Bean
+          KafkaMvcRequestCreator requestCreator(KafkaMvcProducer producer) {
+              return new KafkaMvcRequestCreator(producer);
+          }
+
+     }
+     ```
 
 7. **Пример использования**:
+
+   - application.yml
+
+     ```yml
+     kafka-mvc:
+       bootstrap-servers: localhost:9092
+       consumer:
+         name: "service-a-consumer"
+         threads:
+           max: 50
+           start: 10
+       producer:
+         replyTopic: "service.a.response"
+         timeout: 10000
+     ```
+
+   - Пример конфигурации:
+
+     ```java
+     import ru.owpk.kafkamvc.annotation.EnableKafkaMvcConsumer;
+     import ru.owpk.kafkamvc.annotation.EnableKafkaMvcProducer;
+     import ru.owpk.kafkamvc.producer.KafkaMvcProducer;
+     import ru.owpk.kafkamvc.utils.KafkaMvcRequestCreator;
+
+     @Configuration
+     @EnableKafkaMvcProducer
+     @EnableKafkaMvcConsumer
+     public class BeanConfig {
+
+         @Bean
+         public KafkaMvcRequestCreator requestCreator(KafkaMvcProducer kafkaSparuralProducer) {
+             return new KafkaMvcRequestCreator(kafkaSparuralProducer);
+         }
+     }
+     ```
+
+   - Пример продюссера:
+
+     ```java
+     @Service
+     public class ExampleService {
+
+         @Autowired
+         private KafkaMvcRequestCreator requestCreator;
+
+         // Async example
+         public String fooAsync(MyRequestDtoObj req) {
+            var asyncResponse = requestCreator.createRequestBuilder()
+                .withAction("/exampleEndpoint")
+                .withTopicName("service-b")
+                .withRequestBody(req)
+                .sendAsync();
+            System.out.println(asyncResponse);
+
+         }
+
+         // Sync example
+         public void fooSync(MyRequestDtoObj req) {
+            OtherResponseDtoObj syncResponse = requestCreator.createRequestBuilder()
+                .withAction("/exampleEndpoint")
+                .withTopicName("service-b")
+                .withRequestBody(req)
+                .sendForEntity(OtherResponseDtoObj.class);
+            System.out.println(syncResponse);
+         }
+     }
+     ```
 
    - Пример контроллера:
 
      ```java
+     import ru.owpk.kafkamvc.annotation.Payload;
+     import ru.owpk.kafkamvc.annotation.RequestParam;
+
      @KafkaMvcController(topic = "example-topic")
      public class ExampleController {
 
-         @KafkaMvcMapping("exampleAction")
-         public String handleExampleAction(KafkaRequestMessage request) {
+         @KafkaMvcMapping("/exampleEndpoint")
+         public OtherResponseDtoObj bar(@Payload MyRequestDtoObj request) {
              // Логика обработки
-             return "Response";
+         }
+
+         // @RequestParam - "?key=value" analog
+         @KafkaMvcMapping("/exampleEndpointWithRequestVariables")
+         public OtherResponseDtoObj bar(@Payload MyRequestDtoObj request, @RequestParam Integer count) {
+             // Логика обработки
          }
      }
      ```
