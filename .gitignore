@@ -4,3 +4,4 @@
 /target
 /.vscode
 maven-wrapper.jar
+.DS_Store
